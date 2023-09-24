@@ -1,0 +1,60 @@
+name: Build and Deploy React SSR App
+
+on:
+  push:
+    branches:
+      - master
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+
+    steps:
+      - uses: actions/checkout@v2
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v3
+        with:
+          node-version: v8.8.1
+
+      - name: Install dependencies
+        run: npm install
+
+      - name: Build the app
+        run: npm run build:prod
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy the app to AWS
+        uses: actions/aws-cli@v3
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          region: us-east-1
+
+          # Create an S3 bucket
+          create-bucket:
+            Bucket: my-app-bucket
+
+          # Upload the built app to the S3 bucket
+          sync:
+            source: ./build
+            destination: s3://my-app-bucket
+
+          # Create a CloudFront distribution
+          create-distribution:
+            DistributionConfig:
+              Origins:
+                - Id: my-app-origin
+                  DomainName: my-app-bucket.s3.amazonaws.com
+
+          # Update the CloudFront distribution to use S3 as its origin
+          update-distribution:
+            DistributionId: ${{ steps.create-distribution.outputs.DistributionId }}
+            DistributionConfig:
+              Origins:
+                - Id: my-app-origin
+                  DomainName: my-app-bucket.s3.amazonaws.com
