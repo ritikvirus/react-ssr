@@ -1,31 +1,56 @@
-# [DEPRECATED] React Server Side Rendering
-This is no longer the recommended way to approach server side rendering with React. For an all-round solution look at a starter with `next.js` or `remix`
+# React SSR Project
+This is a React project that uses server-side rendering (SSR) to improve performance and SEO. It also uses GitHub Actions to automatically deploy the code to a server whenever there is a merge or commit to the master branch.
 
-## Getting started
-Clone the repo with
-```git clone https://github.com/alexnm/react-ssr```
+## Installation
+To install this project, you need to have Node.js and npm installed on your machine. Then, follow these steps:
+* Clone this repository: git clone https://github.com/ritikvirus/react-ssr.git
+* Go to the project directory: cd react-ssr
+* Before install dependencies please use node version v8.8.1 or <= version
+* Install the dependencies: ```npm i```
 
-Install dependencies with
-```npm i```
 
-Run dev mode with
-```npm run dev```
+## Usage
+To run this project locally, you can use the following commands:
 
-Now open the browser and navigate to `http://localhost:2048` and you get your server rendered React app. You can inspect the page source and see that the html coming from your local server has all the nodes defined in the React app.
+* To start the development server: npm run dev
+* To build the production bundle: npm run build
+* To start the production server: npm start
+* The app will be available at http://localhost:2048 by default.
+  this is my [react-ssr-assignment.ritikvirus.xyz](http://react-ssr-assignment.ritikvirus.xyz/)
 
-### A few notes
-* I tried to limit the complexity of the entire app to focus on the server side rendering part. Don't take the same shortcuts in your production app!
-* We're starting the server with the `index.js` file which is in the root folder. This file loads the babel-register and sets up the babel plugins needed to run JSX and ESModules on the server.
-* The node server needs to handle the static files from the `dist` folder.
-* The entry point of the bundle is called `client.js` because it's the only part of our application that is not used for the server render.
+## GitHub Action
+I have setup Github Action for current repo if in this repo code push and merger code then github action will build and deploy on my server 
+this is my github action workflow file here is i'm created some variables 
+i'm using this SSH_PRIVATE_KEY for my pem key , SSH_HOST this variable using for EC2 Instance PUBLIC IP and this USER_NAME use for machine user name
 
-## Navigating through the different steps
-Understand the different parts of server side rendering by going through each tag:
-* [Base example](https://github.com/alexnm/react-ssr/tree/basic)
-* [Adding React Router](https://github.com/alexnm/react-ssr/tree/router)
-* [Adding Redux](https://github.com/alexnm/react-ssr/tree/redux)
-* [Data Fetching](https://github.com/alexnm/react-ssr/tree/fetch-data)
-* [Using React Helmet](https://github.com/alexnm/react-ssr/tree/helmet)
+```name: Deploy
 
-## In depth explanations
-Read more about [implementing server side rendering](https://medium.com/@alexnm/demystifying-reacts-server-side-render-de335d408fe4) step by step. Feedback is more than welcome!
+on:
+  push:
+    branches: [ master ]
+
+jobs:
+  Deploy:
+    name: Deploy to EC2
+    runs-on: ubuntu-latest
+    
+    steps:
+      - uses: actions/checkout@v2 
+      - name: Build & Deploy
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{ secrets.SSH_HOST }}
+            USER_NAME: ${{ secrets.USER_NAME }}
+      
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
+              cd /home/ubuntu/react-ssr &&
+              git checkout master &&
+              git fetch origin &&
+              git pull origin &&
+              sudo pm2 stop 0 &&
+              sudo npm run build &&
+              sudo pm2 start
+              '
+```
