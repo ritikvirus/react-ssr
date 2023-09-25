@@ -1,55 +1,31 @@
-name: Deploy to AWS
+name: Deploy
 
 on:
   push:
-    branches:
-      - master
+    branches: [ master ]
 
 jobs:
-  build:
+  Deploy:
+    name: Deploy to EC2
     runs-on: ubuntu-latest
-
+    
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
+      - uses: actions/checkout@v2 
+      - name: Build & Deploy
+        env:
+            PRIVATE_KEY: ${{ secrets.SSH_PRIVATE_KEY }}
+            HOSTNAME: ${{secrets.SSH_HOST}}
+            USER_NAME: ${{secrets.USER_NAME}}
+      
+        run: |
+          echo "$PRIVATE_KEY" > private_key && chmod 600 private_key
+          ssh -o StrictHostKeyChecking=no -i private_key ${USER_NAME}@${HOSTNAME} '
 
-      - name: Set up Node.js
-        uses: actions/setup-node@v2
-        with:
-          node-version: v8.8.1
-
-      - name: Install dependencies
-        run: npm install
-
-      - name: Build application
-        run: npm run build
-
-      - name: Upload build artifacts
-        uses: actions/upload-artifact@v2
-        with:
-          name: build
-          path: build
-          if-no-files-found: error # or fail
-
-  deploy:
-    needs: build
-    runs-on: ubuntu-latest
-
-    steps:
-      - name: Download build artifacts
-        uses: actions/download-artifact@v2
-        with:
-          name: build
-
-      - name: Configure AWS credentials
-        uses: aws-actions/configure-aws-credentials@v1
-        with:
-          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
-          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          aws-region: ${{ secrets.AWS_REGION }}
-
-      - name: Sync build artifacts to S3
-        run: aws s3 sync build/ s3://${{ secrets.AWS_S3_BUCKET }}
-
-      - name: Deploy application using CodeDeploy
-        run: aws deploy create-deployment --application-name react-ssr --deployment-group-name react-ssr --s3-location bucket=${{ secrets.AWS_S3_BUCKET }},key=build,bundleType=zip
+              # Now we have got the access of EC2 and we will start the deploy .
+              cd /home/ubuntu/react-ssr &&
+              git checkout master &&
+              git fetch origin
+              git pull origin
+              sudo npm run build &&
+              sudo pm2 restart &&
+              '
