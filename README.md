@@ -21,7 +21,7 @@ To run this project locally, you can use the following commands:
 ## GitHub Action
 I have setup Github Action for current repo if in this repo code push and merger code then github action will build and deploy on my server 
 this is my github action workflow file here is i'm created some variables 
-i'm using this SSH_PRIVATE_KEY for my pem key , SSH_HOST this variable using for EC2 Instance PUBLIC IP and this USER_NAME use for machine user name
+i'm using this ```SSH_PRIVATE_KEY``` for my pem key , ```SSH_HOST``` this variable using for EC2 Instance PUBLIC IP and this ```USER_NAME``` use for machine user name
 
 ```name: Deploy
 
