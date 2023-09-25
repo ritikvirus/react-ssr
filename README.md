@@ -54,3 +54,4 @@ jobs:
               sudo pm2 start
               '
 ```
+I also setup PM2 for easy start stop application
