@@ -7,7 +7,7 @@ class Layout extends React.Component {
     constructor() {
         super();
         this.state = {
-            title: "Welcome to React SSR!",
+            title: "RITIK ASSIGNMENT REACT SSR WITH GITHUB ACTION PIPELINE",
         };
     }
 
