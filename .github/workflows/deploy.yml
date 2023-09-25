@@ -24,8 +24,8 @@ jobs:
               # Now we have got the access of EC2 and we will start the deploy .
               cd /home/ubuntu/react-ssr &&
               git checkout master &&
-              git fetch origin
-              git pull origin
+              git fetch origin &&
+              git pull origin &&
               sudo npm run build &&
               sudo pm2 restart &&
               '
